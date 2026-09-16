@@ -443,13 +443,8 @@ function toggleSound(){
 
 document.addEventListener('click', function unlockAudio(){
   startBGM();
-  [AUDIO.draw, AUDIO.result, AUDIO.tap, AUDIO.god, AUDIO.points].forEach(a => {
-    a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
-  });
-  if(!AUDIO.bgm.paused){
-    document.removeEventListener('click', unlockAudio);
-  }
-});
+  document.removeEventListener('click', unlockAudio);
+}, { once: true });
 
 /* ===================== ここからアプリ本体 ===================== */
 const GODS = [
