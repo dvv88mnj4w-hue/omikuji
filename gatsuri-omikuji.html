@@ -426,7 +426,8 @@ function playPointsFanfare(){ playSfx(AUDIO.points); }
 
 function startBGM(){
   if(!soundOn) return;
-  AUDIO.bgm.play().catch(()=>{});
+  const p = AUDIO.bgm.play();
+  if(p && p.catch){ p.catch(() => {}); }
 }
 function stopBGM(){
   AUDIO.bgm.pause();
@@ -436,14 +437,19 @@ function toggleSound(){
   soundOn = !soundOn;
   const slash = document.getElementById('bell-slash');
   if(slash) slash.style.display = soundOn ? 'none' : '';
-  if(soundOn){ startBGM(); }
+  if(soundOn){ startBGM(); playTap(); }
   else { stopBGM(); }
 }
 
-document.addEventListener('click', function initAudioOnce(){
+document.addEventListener('click', function unlockAudio(){
   startBGM();
-  document.removeEventListener('click', initAudioOnce);
-}, { once:true });
+  [AUDIO.draw, AUDIO.result, AUDIO.tap, AUDIO.god, AUDIO.points].forEach(a => {
+    a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+  });
+  if(!AUDIO.bgm.paused){
+    document.removeEventListener('click', unlockAudio);
+  }
+});
 
 /* ===================== ここからアプリ本体 ===================== */
 const GODS = [
@@ -541,7 +547,6 @@ function tapOmikuji(){
   void box.offsetWidth; // restart animation
   box.classList.add('shake');
   navigator.vibrate && navigator.vibrate(10);
-  playTap();
   renderTapDots();
   if(tapCount >= TAPS_NEEDED){
     setTimeout(drawOmikuji, 300);
@@ -563,6 +568,7 @@ function drawOmikuji(){
   navigator.vibrate && navigator.vibrate([10,40,20]);
   playDrawStart();
   box.classList.remove('shake');
+  setTimeout(() => {
     const pick = pickOmikujiResult();
     document.getElementById('result-level').textContent = pick.level;
     document.getElementById('result-text').textContent = pick.text;
@@ -572,6 +578,7 @@ function drawOmikuji(){
       document.getElementById('god-card').classList.add('show');
       playChime();
     });
+  }, 800);
 }
 
 function showGod(){
